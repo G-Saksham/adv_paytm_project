@@ -16,7 +16,13 @@ export default function RootLayout({
 }): JSX.Element {
   return (
     <html lang="en">
-      <body className={inter.className}>{children}</body>
+      <body className={inter.className}>
+        {children}
+        <br />
+        <div className="bg-black text-lg font-semibold p-2 text-white">
+          ||||||||||||| Layout-Merchant_app |||||||||||||||
+        </div>
+      </body>
     </html>
   );
 }

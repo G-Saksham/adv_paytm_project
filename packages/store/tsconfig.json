@@ -1,0 +1,19 @@
+{
+  "extends": "@repo/typescript-config/nextjs.json",
+  "compilerOptions": {
+    "outDir": "dist"
+  },
+  "include": ["src"],
+  "exclude": ["node_modules", "dist"]
+}
+
+// i am having a millioniare job by 2024
+// Great stories/ learnings of this year.
+// 1. acknowlegde some real shit (believe had changed alot!)
+// 2. able to know the importance of the schedule in the life. (working on it)
+// 3. learn very beatifull tech so far from the start of this year.
+// 4. hit the age mark 25
+// 5. want to figure the next fields: []
+// 6. life is just to focus on what to choose according to the time constrait.
+// 7. remember the time of your jee adv paper, you are choosing the questions which are solvable in the given time contrain.
+// 8. you can't do everything in life "at a time"
