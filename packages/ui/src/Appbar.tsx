@@ -1,11 +1,15 @@
 import { Button } from "./button";
 
 interface AppbarProps {
-    user?: {
-        name?: string | null;
-    },
+    user?: any
+    // {
+    //     name?: string | null,
+    //     number: number,
+    //     email?: string | null,
+    //     password: string,
+    // },
     // TODO: can u figure out what the type should be here?
-    onSignin?: any,
+    onSignin?: any
     onSignout?: any
 }
 

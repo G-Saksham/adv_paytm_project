@@ -1,60 +1,53 @@
-import {PrismaClient} from "@payment-exchange/db/client";
-import CredentialsProvider from "next-auth/providers/credentials";
-import bcrypt from "bcrypt";
+import prisma from "@payment-exchange/db/client"
+import CredentialsProvider from "next-auth/providers/credentials"
+import bcrypt from "bcrypt"
 import z from "zod"
-import GitHubProvider from "next-auth/providers/github";
-import GoogleProvider from "next-auth/providers/google";
-import InstagramProvider from "next-auth/providers/instagram";
-import FacebookProvider from "next-auth/providers/facebook";
-
-const prisma = new PrismaClient();
-
-export const SigninSchema = z.object({
-    email: z.string(),
-    password: z.string()
-})
+import GitHubProvider from "next-auth/providers/github"
+import GoogleProvider from "next-auth/providers/google"
 
 export const authOptions = {
     providers: [
         CredentialsProvider({
             name: "Credentials",
             credentials: {
-                username: {label: "Email", type: "text", placeholder: "Email"},
+                phone: {label: "Phone Number", type: "number", placeholder: "Enter your phone number"},
                 password: {label: "Password", type: "password", placeholder: "Password"}
             },
-            async authorize(credentials: any) : Promise<any> {
+            async authorize(credentials: Record<"phone" | "password", string> | undefined): Promise<any> {
                 try {
-                    const parsedPayload = SigninSchema.safeParse({ 
-                        email: credentials.username,
-                        password: credentials.password
+                    // zod validation not working (find reason | always thorw error)
+
+                    if (!credentials) {
+                        return null
+                    }
+                    
+                    // hashing password
+                    const hashedPassword = await bcrypt.hash(credentials.password, 10);
+
+                    const existingUser = await prisma.user.findFirst({
+                        where: {
+                            number: credentials.phone
+                        }
+                    });
+
+                    if(existingUser) {
+                        const passwordValidation = await bcrypt.compare(credentials.password, existingUser.password)
+                        if(passwordValidation) {
+                            return existingUser
+                        }
+                        return null
+                    }
+
+                    const user = await prisma.user.create({
+                        data: {
+                            number: credentials.phone,
+                            password: hashedPassword,
+                        }
                     })
-
-                    if(!parsedPayload.success) {
-                        throw Error("Please check your credentials!")
-                    }
-
-                    const hashedPassword = await bcrypt.hash(parsedPayload.data.password,10);
-
-                    const user = await prisma.user.findUnique({
-                        where: parsedPayload.data
-                    })
-
-                    if(!user) {
-                        throw Error("User not exist")
-                    }
-
-                    const userValidation = await bcrypt.compare(hashedPassword, user.password)
-
-                    if(!userValidation) {
-                        throw Error("Wrong passwrod, Please, try again!")
-                    }
-
-                    console.log(credentials)
                     return user;
-
                 } catch (e) {
-                    console.error(e);
-                    return alert("Check console for the error") 
+                    console.error(e)
+                    return null
                 }
             }
         }),
