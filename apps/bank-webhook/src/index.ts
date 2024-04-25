@@ -1,16 +1,24 @@
 import express from "express";
-import db from "@repo/db/client";
-const app = express();
+import prisma from "@repo/db/client";
+import cors from "cors";
 
+const app = express();
+const PORT = 8080;
+
+app.use(cors())
 app.use(express.json())
 
-app.post("/hdfcWebhook", async (req, res) => {
+app.get("/anyBankWebhook", async (req, res) => {
+    res.json({mgs: "Hi there!, dummy webhook server runs fine."})
+})
+
+app.post("/anyBankWebhook", async (req, res) => {
     //TODO: Add zod validation here?
     //TODO: HDFC bank should ideally send us a secret so we know this is sent by them
     const paymentInformation: {
-        token: string;
-        userId: string;
-        amount: string
+        token: string,
+        userId: number,
+        amount: number
     } = {
         token: req.body.token,
         userId: req.body.user_identifier,
@@ -18,8 +26,8 @@ app.post("/hdfcWebhook", async (req, res) => {
     };
 
     try {
-        await db.$transaction([
-            db.balance.updateMany({
+        await prisma.$transaction([
+            prisma.balance.update({
                 where: {
                     userId: Number(paymentInformation.userId)
                 },
@@ -30,16 +38,16 @@ app.post("/hdfcWebhook", async (req, res) => {
                     }
                 }
             }),
-            db.onRampTransaction.updateMany({
+            prisma.onRampTransaction.update({
                 where: {
-                    token: paymentInformation.token
+                    token: paymentInformation.token,
+                    status: "Processing"
                 }, 
                 data: {
                     status: "Success",
                 }
             })
         ]);
-
         res.json({
             message: "Captured"
         })
@@ -49,7 +57,26 @@ app.post("/hdfcWebhook", async (req, res) => {
             message: "Error while processing webhook"
         })
     }
-
 })
 
-app.listen(3003);
+app.delete("/anyBankWebhook", async (req, res) => {
+    const token : string = req.body.token
+    try{
+        await prisma.onRampTransaction.update({
+            where: {
+                token: token,
+                status: "Processing"
+            }, 
+            data: {
+                status: "Failure",
+            }
+        })
+        res.json({message: "Request Cancelled"})
+    } catch (e) {
+        res.status(411).json(e)
+    }
+})
+
+app.listen(PORT, () => {
+    console.log(`Dummy bank webhook server is listening on port ${PORT}`)
+});
