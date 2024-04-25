@@ -7,8 +7,9 @@ export const authOptions = {
       CredentialsProvider({
           name: 'Credentials',
           credentials: {
-            phone: { label: "Phone number", type: "text", placeholder: "1231231231", required: true },
-            password: { label: "Password", type: "password", required: true }
+            name: {label: "Name", type: "text", placeholder: "Username", required: false},
+            phone: { label: "Phone number", type: "number", placeholder: "Enter your 10 digit number", required: true },
+            password: { label: "Password", type: "password", placeholder: "*****", required: true }
           },
           // TODO: User credentials type from next-aut
           async authorize(credentials: any) {
@@ -23,10 +24,12 @@ export const authOptions = {
             if (existingUser) {
                 const passwordValidation = await bcrypt.compare(credentials.password, existingUser.password);
                 if (passwordValidation) {
+                    // console.log("hi")
+                    // console.log(existingUser)
                     return {
                         id: existingUser.id.toString(),
                         name: existingUser.name,
-                        email: existingUser.number
+                        number: existingUser.number
                     }
                 }
                 return null;
@@ -36,19 +39,18 @@ export const authOptions = {
                 const user = await db.user.create({
                     data: {
                         number: credentials.phone,
-                        password: hashedPassword
+                        password: hashedPassword,
+                        name : credentials.name
                     }
                 });
-            
                 return {
                     id: user.id.toString(),
                     name: user.name,
-                    email: user.number
+                    number: user.number
                 }
             } catch(e) {
-                console.error(e);
+                console.log(e);
             }
-
             return null
           },
         })
@@ -58,7 +60,6 @@ export const authOptions = {
         // TODO: can u fix the type here? Using any is bad
         async session({ token, session }: any) {
             session.user.id = token.sub
-
             return session
         }
     }
