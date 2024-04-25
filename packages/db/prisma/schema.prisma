@@ -9,12 +9,13 @@ datasource db {
 
 model User {
   id                Int                 @id @default(autoincrement())
-  email             String?             @unique
-  name              String?
+  name              String              @default("User")
   number            String              @unique
   password          String
   OnRampTransaction OnRampTransaction[]
   Balance           Balance[]
+  sentAmount        P2PTransaction[]    @relation(name: "fromUserRelation")
+  receivedAmount    P2PTransaction[]    @relation(name: "toUserRelation")
 }
 
 model Merchant {
@@ -29,10 +30,23 @@ model OnRampTransaction {
   status    OnRampStatus
   token     String       @unique
   provider  String
-  amount    Int
+  amount    Int          
   startTime DateTime
   userId    Int
   user      User         @relation(fields: [userId], references: [id])
+}
+
+model P2PTransaction {
+  id            Int          @id @default(autoincrement())
+  status        p2ptxnStatus
+  startTime     DateTime
+  fromUserId    Int
+  toUserId      Int
+  toUserName    String       @default("Anonymus")
+  fromUserName  String       @default("Anonymus")
+  amount        Int
+  fromUser      User         @relation(name: "fromUserRelation" ,fields: [fromUserId], references: [id])
+  toUser        User         @relation(name: "toUserRelation", fields: [toUserId], references: [id])
 }
 
 model Balance {
@@ -52,4 +66,9 @@ enum OnRampStatus {
   Success
   Failure
   Processing
+}
+
+enum p2ptxnStatus {
+  Success
+  Failure
 }

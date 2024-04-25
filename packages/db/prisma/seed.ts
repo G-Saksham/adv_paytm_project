@@ -1,8 +1,11 @@
-import { PrismaClient } from '@prisma/client'
+// import { PrismaClient } from '@prisma/client'
 import bcrypt from "bcrypt";
-const prisma = new PrismaClient()
+// const prisma = new PrismaClient()
+import prisma from "@repo/db/client"
+
 
 async function main() {
+  //upsest => update or create
   const alice = await prisma.user.upsert({
     where: { number: '1111111111' },
     update: {},
